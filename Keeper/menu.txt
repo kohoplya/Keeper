@@ -1,0 +1,30 @@
+Steamed Vegetables, garnish, 3.99
+Mashed Potatoes, garnish, 2.99
+Rice Pilaf, garnish, 3.49
+Roasted Sprouts, garnish, 4.29
+Grilled Asparagus, garnish, 4.99
+Bruschetta, appetizer, 5.99
+Stuffed Mushrooms, appetizer, 6.99
+Garlic Bread, appetizer, 3.99
+Shrimp Cocktail, appetizer, 8.99
+Deviled Eggs, appetizer, 4.49
+Greek Salad, salad, 7.99
+Caesar Salad, salad, 6.99
+Caprese Salad, salad, 8.49
+Cobb Salad, salad, 9.99
+Waldorf Salad, salad, 8.99
+Margherita Pizza, pizza, 12.99
+Pepperoni Pizza, pizza, 13.99
+BBQ Chicken Pizza, pizza, 14.99
+Veggie Pizza, pizza, 12.49
+Hawaiian Pizza, pizza, 13.49
+Spaghetti Carbonara, first, 11.99
+Lasagna, first, 13.99
+Chicken Alfredo, first, 12.99
+Tomato Basil Soup, first, 6.99
+Minestrone Soup, first, 7.99
+Chocolate Cake, dessert, 6.99
+Tiramisu, dessert, 7.99
+Cheesecake, dessert, 7.49
+Apple Pie, dessert, 5.99
+Ice Cream Sundae, dessert, 6.49
