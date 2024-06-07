@@ -58,12 +58,12 @@ public:
 	}
 
     vector<Dish> choiseDishes(bool isOne = false) {
-        Menu m(20, types.size() + 2, 5, 20);
+        Menu m(20, types.size() + 2, 2, 40);
         vector<Dish> chosen;
 
         while (1) {
             m.setH(types.size() + 2);
-            m.SetX(20);
+            m.SetX(40);
             m.clearItems();
             for (string t : types) {
                 m.AddElement(t.c_str());
@@ -73,7 +73,7 @@ public:
             int choiseT = m.Select();
             if (choiseT >= types.size()) break;
 
-            m.SetX(41);
+            m.SetX(62);
             m.clearItems();
 
             int count = count_if(dishes.begin(), dishes.end(), [choiseT, this](const Dish& dish) {
@@ -83,8 +83,9 @@ public:
             for (Dish& d : dishes) {
                 if (d.type == types[choiseT]) m.AddElement(d.name.c_str());
             }
-            int chosenD = m.Select();
 
+            int chosenD = m.Select();
+            clsXY(LightGray, 61, 2, 82, m.GetCount() + 4);
             int i = 0;
             for (Dish& d : dishes) {
                 if (d.type == types[choiseT]) {
@@ -112,10 +113,11 @@ public:
     }
 
     void writeDish() {
+        clsXY(LightGray, 37, 2, 150, 25);
         Dish d;
 
-        Menu m(20, 10, 5, 20);
-        m.addHeader(3, "Choise type of the dish");
+        Menu m(20, 10, 6, 40);
+        m.addHeader(3, "Choise the type of the dish");
         for (string t : types) {
             m.AddElement(t.c_str());
         }
@@ -123,15 +125,13 @@ public:
         int t = m.Select();
         d.type = types[t];
 
-        cls();
-        Window w(30, 4, 5, 40);
-        w.customInput("Dish name: ", 6);
+        Window w(30, 3, 2, 63);
+        w.customInput("Dish name: ", 3);
         d.name = w.getInput();
 
-        cls();
         do {
             w.Show();
-            w.customInput("Cost: ", 6);
+            w.customInput("Cost: ", 3);
             try {
                 d.cost = stod(w.getInput());
             }

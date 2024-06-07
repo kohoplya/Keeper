@@ -28,3 +28,6 @@ Tiramisu, dessert, 7.99
 Cheesecake, dessert, 7.49
 Apple Pie, dessert, 5.99
 Ice Cream Sundae, dessert, 6.49
+test, garnish, 33
+poxui, garnish, 22
+xui pizza, pizza, 4

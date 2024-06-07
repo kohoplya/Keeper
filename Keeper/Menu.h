@@ -61,6 +61,12 @@ public:
 
 	}
 
+	Menu& addFooter(int _y, string str) {
+		Window win(this->width, _y, this->y + this->height + 1, this->x);
+		win.writeText((this->y + this->height + 2), str);
+		return *this;
+	}
+
 	void setW(int w) { this->width = w; }
 	void setH(int h) { this->height = h; }
 	void clearItems() {

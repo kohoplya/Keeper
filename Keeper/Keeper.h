@@ -37,12 +37,12 @@ public:
 	RestMenu menu;
 	Cashier cashier;
 	Employee* current;
+	vector<Order*> orders;
 
 	Keeper() {
 		fstream file;
 		file.open("employeers.dat", (ios::in | ios::binary | ios::ate));
 		int size = (file.tellg() / sizeof(Employee));
-		if (!size || !file) { return; }
 		file.seekg(0, ios::beg);
 		Employee* e = new Employee[size];
 		for (int i = 0; i < size; i++) {
@@ -70,9 +70,8 @@ public:
 		return nullptr;
 	}
 
-	string enterData(string desc, int len, bool isNum = false, bool isLogin = false) {
-		cls();
-		Window w(len + desc.length() + 1, 4, 9, 40);
+	string enterData(int x, int y, string desc, int len, bool isNum = false, bool isLogin = false) {
+		Window w(len + desc.length() + 1, 4, y, x);
 		string input;
 		bool isUniq;
 
@@ -103,60 +102,75 @@ public:
 	}
 
 	int tableSelect() {
-		Window header(33, 4, 4, 40);
-		header.writeText(6, "Choise the number of table");
-		Keyboard kb(40, 9, 7, 41, 20, true, 5, true);
+		Window header(33, 3, 2, 40);
+		header.writeText(3, "Choise the number of table");
+		Keyboard kb(40, 6, 7, 41, 20, true, 5, true);
 		int num = kb.Select();
 
 		return num;
 	}
 
 	void mainMenu() {
-		Menu menuWin(19, 9, 9, 40);
-		stringstream ss;
-		ss << "Welcome " << current->login << " " << current->lastname << endl;
-		menuWin.addHeader(3, ss.str());
+		Menu menuWin(25, 9, 6, 10);
 
 		menuWin.AddElement("Create order");
 		menuWin.AddElement("Edit order");
 		menuWin.AddElement("Close order");
-		menuWin.AddElement("Add employee");
-		menuWin.AddElement("Change waiter");
-		menuWin.AddElement("Add dish");
-		menuWin.AddElement("Remove dish");
+
+		if (current->isAdmin) {
+			menuWin.AddElement("Add employee");
+			menuWin.AddElement("Change waiter");
+			menuWin.AddElement("Add dish");
+			menuWin.AddElement("Remove dish");
+		}
 		menuWin.AddElement("EXIT");
 
+		menuWin.setH(menuWin.GetCount() + 1);
+		stringstream ss;
+		ss << "Welcome, " << current->login << " " << current->lastname << "!" << endl;
+		menuWin.addHeader(3, ss.str());
+		ss.str("");
+		if (current->isAdmin) ss << "(Administrator panel)";
+		else ss << "(Waiter's panel)";
+		menuWin.addFooter(3, ss.str());
 
 		while (1) {
-			cls();
-			menuWin.addHeader(3, ss.str());
-
 			int choise = menuWin.Select();
 
-			if (choise == -1) { 
-				cls();
-				return; 
-			}
 			if (choise == 0) createOrder();
 			if (choise == 1) editOrder();
 			if (choise == 2) closeOrder();
-			if (choise == 3) addEmployee();
-			if (choise == 4) changeWaiter();
-			if (choise == 5) menu.writeDish();
-			if (choise == 7) { 
-				cls();
-				return; 
+			if (current->isAdmin) {
+				if (choise == 3) addEmployee();
+				if (choise == 4) changeWaiter();
+				if (choise == 5) menu.writeDish();
+				if (choise == 6) removeDish();
 			}
-
+			if (choise == 7 || (!current->isAdmin && choise == 3)) {
+				choise = -1;
+			}
+			if (choise == -1) {
+				cls();
+				return;
+			}
 		}
 	}
 
 	Menu& printOrders(Menu& menuWin) {
 		stringstream ss;
 
-		if (current->orders.size() == 0) {
+		vector<Order*> empOrders;
+
+		if (current->isAdmin) empOrders = orders;
+		else {
+			for (Order* o : orders) {
+				if (o->emp->login == current->login) empOrders.push_back(o);
+			}
+		}
+
+		if (empOrders.size() == 0) {
 			ss << "No orders is here";
-			menuWin.addHeader(3, ss.str());
+			menuWin.addFooter(3, ss.str());
 			ss.str("");
 
 			menuWin.AddElement("Exit");
@@ -165,10 +179,10 @@ public:
 			return menuWin;
 		}
 
-		menuWin.setH(current->orders.size() + 2);
+		menuWin.setH(empOrders.size() + 2);
 
-		for (Order& o : current->orders) {
-			ss << "table: " << o.table << " -> " << o.emp->login;
+		for (Order* o : empOrders) {
+			ss << "table: " << o->table << " -> " << o->emp->login;
 			menuWin.AddElement(ss.str().c_str());
 			ss.str("");
 		}
@@ -190,35 +204,30 @@ public:
 	}
 
 	void createOrder() {
-		Menu menuWin(19, 8, 9, 40);
-
+		clsXY(LightGray, 37, 2, 150, 22);
 		int table = tableSelect();
-		Order order(current);
-		order.table = table;
-		cls();
+		Order* order = new Order(current);
+		order->table = table;
+		clsXY(LightGray, 37, 2, 90, 22);
 
-		order.dishes = menu.choiseDishes();
-		cls();
-		current->orders.push_back(order);
+		order->dishes = menu.choiseDishes();
+		orders.push_back(order);
+		clsXY(LightGray, 37, 2, 90, 22);
 
-		for (Employee& e : employees) {
-			if (e.isAdmin && &e != current) e.orders.push_back(order);
-		}
-
-		order.printOrder(40, 5);
+		Menu menuWin(19, 8, 9, 40);
+		order->printOrder(40, 2);
 		menuWin.setH(3);
 		menuWin.setW(10);
-		menuWin.Move(67, 5);
+		menuWin.Move(67, 2);
 
 		menuWin.AddElement("EXIT");
 		menuWin.Select();
-		cls();
 	}
 
 	void editOrder() {
-		cls();
-		Menu menuWin(19, 3, 9, 40);
-		Menu editWin(25, 3, 9, 67);
+		clsXY(LightGray, 37, 2, 100, 22);
+		Menu menuWin(19, 3, 2, 40);
+		Menu editWin(25, 3, 2, 61);
 		editWin.AddElement("Edit").AddElement("Exit");
 
 		vector <Dish> chosen;
@@ -227,27 +236,26 @@ public:
 		int lastChoice = 0;
 		while (1) {
 			int choice = menuWin.Select();
-			if (choice >= current->orders.size()) break;
+			if (choice >= orders.size()) break;
 
-			clsXY(LightGray, 66, 9, 100, 9 + (current->orders[lastChoice].dishes.size() + 10));
-			current->orders[choice].printOrder(67, 9);
-			editWin.Move(67, GetCurrentY() + 2);
+			clsXY(LightGray, 84, 9, 150, 9 + (orders[lastChoice]->dishes.size() + 10));
+			orders[choice]->printOrder(61, 2);
+			editWin.Move(61, GetCurrentY() + 2);
 			int editChoice = editWin.Select();
 			lastChoice = choice;
-			cls();
+			clsXY(LightGray, 37, 2, 150, 22);
 
 			while (editChoice == 0) {
 				chosen = menu.choiseDishes(true);
 				if (chosen.empty()) { 
-					cls();  
 					break; 
 				}
-				current->orders[choice].dishes.push_back(chosen[0]);
-				current->orders[choice].printOrder(67, 5);
-				editWin.Move(67, GetCurrentY() + 2);
+				orders[choice]->dishes.push_back(chosen[0]);
+				orders[choice]->printOrder(84, 2);
+				editWin.Move(84, GetCurrentY() + 2);
 				int editChoise = editWin.Select();
-				if (editChoise == 1) { 
-					cls();
+				if (editChoise == 1) {
+					clsXY(LightGray, 37, 2, 60, 22);
 					break;
 				}
 			}
@@ -256,46 +264,48 @@ public:
 	}
 
 	void closeOrder() {
-		cls();
-		Menu menuWin(19, 3, 9, 40);
-		Menu closeWin(25, 4, 9, 67);
+		clsXY(LightGray, 37, 2, 150, 22);
+		Menu menuWin(20, 3, 6, 40);
+		Menu closeWin(25, 4, 2, 67);
 
 		closeWin.AddElement("Cash").AddElement("Card").AddElement("Exit");
 
-		int lastChoice = 0;
+		int lastSize = 0;
 		while (1) {
-			cls();
-			cashier.printCashier(12, 9);
+			cashier.printCashier(40, 2);
 			menuWin.clearItems();
 			printOrders(menuWin);
 			int choice = menuWin.Select();
-			if (choice >= current->orders.size()) break;
-			clsXY(LightGray, 66, 9, 100, 9 + (current->orders[lastChoice].dishes.size() + 10));
-			current->orders[choice].printOrder(67, 9);
+			if (choice >= orders.size()) break;
+			clsXY(LightGray, 66, 2, 120, 2 + lastSize);
+			orders[choice]->printOrder(67, 2);
 			closeWin.Move(67, GetCurrentY() + 2);
 
 			int closeChoice = closeWin.Select();
-			lastChoice = choice;
+			lastSize = orders[choice]->dishes.size() + 12;
 
 			while (closeChoice < 2) {
 				if (closeChoice == 0) {
-					cashier.cash += current->orders[choice].getTotal();
-				} else cashier.card += current->orders[choice].getTotal();
-				current->orders.erase(current->orders.begin() + choice);
+					cashier.cash += orders[choice]->getTotal();
+				} else cashier.card += orders[choice]->getTotal();
+				clsXY(LightGray, 37, 6, 60, 6 + orders.size() + 2);
+				orders.erase(orders.begin() + choice);
 				break;
 			}
 		}
 	}
 
 	void addEmployee() {
+		clsXY(LightGray, 37, 2, 150, 22);
 		string login, lastname, password;
 		bool isAdmin = 0;
 
-		login = enterData("Enter name: ", 20, false, true);
-		lastname = enterData("Enter lastname: ", 25, false);
-		password = enterData("Enter password: ", 4, true);
-		cls();
-		Menu m(10, 3, 9, 40);
+		login = enterData(40, 2, "Enter login: ", 20, false, true);
+		lastname = enterData(40, 2, "Enter lastname: ", 20, false);
+		password = enterData(40, 2, "Enter password: ", 4, true);
+		clsXY(LightGray, 37, 2, 80, 10);
+
+		Menu m(10, 3, 6, 40);
 		m.addHeader(3, "Is admin?");
 		m.AddElement("yes").AddElement("no");
 		int choice = m.Select();
@@ -310,31 +320,41 @@ public:
 	}
 
 	void changeWaiter() {
-		Menu menuWin(19, 3, 9, 40);
+		clsXY(LightGray, 37, 2, 150, 22);
+		Menu menuWin(19, 3, 2, 40);
+		Menu changeWin(25, 3, 2, 61);
+		changeWin.AddElement("Change").AddElement("Exit");
 
+		int lastSize = 0;
 		while (1) {
-			cls();
 			menuWin.clearItems();
+			clsXY(LightGray, 37, 2, 60, orders.size() + 5);
 			printOrders(menuWin);
 			int choice = menuWin.Select();
-			if (choice >= current->orders.size()) break;
-			int choiceE = choiceEmp(61, 9);
-			Employee& choicedEmp = employees[choiceE];
-			Employee* choicedOrderEmp = nullptr;
-			for (Employee& e : employees) {
-				if (current->orders[choice].emp->login == e.login) choicedOrderEmp = &e;
+			if (choice >= orders.size()) break;
+			clsXY(LightGray, 60, 2, 120, 2 + lastSize);
+			orders[choice]->printOrder(63, 2);
+			lastSize = orders[choice]->dishes.size() + 12;
+
+			changeWin.Move(63, GetCurrentY() + 2);
+			int changeChoice = changeWin.Select();
+			if (changeChoice != 1) {
+				int choiceE = choiceEmp(92, 2);
+				orders[choice]->emp = &employees[choiceE];
 			}
-			current->orders[choice].emp = &choicedEmp;
-			choicedEmp.orders.push_back(current->orders[choice]);
-			for (int i = 0; i < choicedEmp.orders.size(); i++) {
-				if (current->orders[choice] == choicedEmp.orders[i]) {
-					choicedEmp.orders.erase(choicedEmp.orders.begin() + i);
-				}
-			}
-			for (int i = 0; i < choicedOrderEmp->orders.size(); i++) {
-				if (current->orders[choice] == choicedOrderEmp->orders[i]) {
-					choicedOrderEmp->orders.erase(choicedOrderEmp->orders.begin() + i);
-				}
+		}
+	}
+
+	void removeDish() {
+		clsXY(LightGray, 37, 2, 150, 22);
+		Menu menuWin(19, 8, 2, 40);
+
+		vector<Dish> deleted;
+		deleted = menu.choiseDishes();
+
+		for (Dish& d : deleted) {
+			for (int i = 0; i < menu.dishes.size(); i++) {
+				if (d == menu.dishes[i]) menu.dishes.erase(menu.dishes.begin() + i);
 			}
 		}
 	}

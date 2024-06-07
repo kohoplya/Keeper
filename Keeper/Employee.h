@@ -13,7 +13,6 @@ public:
 	string login, lastname;
 	string password;
 	bool isAdmin = 0;
-	vector<Order> orders;
 
 	Employee() {};
 	Employee(string n, string l, string p, bool i) : login(n), lastname(l), password(p), isAdmin(i) {};
