@@ -51,7 +51,7 @@ public:
 		}
 		file.close();
 
-		Employee adminM("Max", "Fun", "7777", 1);
+		Employee adminM("Admin", "Ivanov", "7777", 1);
 		employees.push_back(adminM);
 
 	};
